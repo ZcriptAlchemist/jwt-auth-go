@@ -11,13 +11,5 @@ type User struct {
 	Email string
 	Number string
 	Password string
-	// Salt string
-}
-
-// --------------------
-// Credentials structs.
-// --------------------
-type Credentials struct {
-	Email string
-	Password string
+	Salt string
 }

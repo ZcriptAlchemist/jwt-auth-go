@@ -55,26 +55,6 @@ func RemoveAllUsers () error {
 // ------------------------------------------------------
 // Finds the user in the DB based on entered credentials.
 // ------------------------------------------------------
-// func FindUserByEmail (email *string) (*models.User, error) {
-// 	var user models.User
-
-// 	result := config.DB.First(&user, "email = ?", email)
-
-// 	if result.Error != nil {
-// 	if result.Error == gorm.ErrRecordNotFound {
-// 		return nil, advice.NewAPIError(http.StatusNotFound, "User not found") // Proper handling for user not found
-// 	}
-// 	return nil, result.Error // Ensured all errors are correctly returned
-// }
-
-
-// 	if user.ID == 0 {
-// 		return nil, advice.NewAPIError(http.StatusNotFound, result.Error.Error())
-// 	}
-
-// 	return &user, nil
-// }
-
 func FindUserByEmail(email *string) (*models.User, error) {
 	var user models.User
 

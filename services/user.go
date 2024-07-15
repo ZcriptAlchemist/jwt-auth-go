@@ -2,11 +2,13 @@ package services
 
 import (
 	"fmt"
-	"jwt-auth-go/api/advice"
+
+	// "jwt-auth-go/api/advice"
 	"jwt-auth-go/dao"
+	"jwt-auth-go/dto"
 	"jwt-auth-go/models"
+	"jwt-auth-go/tokens"
 	"jwt-auth-go/utils"
-	"log"
 )
 
 // -------------
@@ -14,15 +16,17 @@ import (
 // -------------
 func CreateUser(user *models.User) error {
 	// Mapping generated salt value to Salt field in user struct
-	// user.Salt = utils.GenerateSalt()
+	user.Salt = utils.GenerateSalt()
+
+	userPass := user.Password + user.Salt
 
 	// Hashing the password.
-	// hashedPassword, err := utils.HashPassword(user.Password, user.Salt)
-	hashedPassword, err := utils.HashPassword(user.Password)
+	hashedPassword, err := utils.HashPassword(userPass)
 
 	if err != nil {
 		return err
 	}
+
 	// Mapping hashedPassword to password field in user struct
 	user.Password = hashedPassword
 
@@ -67,64 +71,36 @@ func DeleteAllUsers () error {
 // ----------------------------------------------------------------------------------
 // Finds credentials in the DB and compares with user entered credentials for log in
 // ----------------------------------------------------------------------------------
-// func FetchLoginCredentials (credentials *models.Credentials) (*models.User, error) {
-
-	
-// 	user, err := dao.FindUserByEmail(&credentials.Email)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// compare sent in password with DB saved password
-// 	err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
-// 		if err2 != nil {
-// 		return nil, err2
-// 	}
-
-// 	// // jwt sht
-// 	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-// 	// 	"sub": user.ID,
-// 	// 	"exp": time.Now().Add(time.Minute * 15).Unix(),
-// 	// })
-
-// 	// // Sign and get the complete encoded token as a string using the secret
-// 	// tokenString, err := token.SignedString(hmacSampleSecret)
-
-// 	// fmt.Println(tokenString, err)
-
-// 	return user, nil
-// }
-
-func FetchLoginCredentials(credentials *models.Credentials) (*models.User, error) {
+func FetchLoginCredentials(credentials *dto.Credentials)  (*dto.LoginResponse, error) {
 
 	user, err := dao.FindUserByEmail(&credentials.Email)
 	if err != nil {
-		return nil, err
+		return nil,err
 	}
 
 	// Ensure user is not nil before proceeding
 	if user == nil {
-		return nil, fmt.Errorf("user not found")
+		return nil,fmt.Errorf("user not found")
 	}
+
+	// Adding salt fetched from Db to login password.
+	plain := credentials.Password + user.Salt
 
 	// Compare sent in password with DB saved password
-	// signInPass, err3 := utils.HashPassword(credentials.Password, user.Salt)
-	signInPass, err3 := utils.HashPassword(credentials.Password)
-	if err3 != nil {
-		log.Println(err3)
+	err = utils.ComparePassword(user.Password, plain)
+
+	if err != nil {
+		return  nil,err
 	}
 
-	log.Println("password from db: ", user.Password)
-	log.Println("password from entered password: ", signInPass)
-
-	// err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
-	isMatch := utils.ComparePassword(user.Password, signInPass)
-
-	if isMatch {
-		return nil, advice.NewError("no match")
+	// generate JWT Token
+	token, err := tokens.GenerateJwtToken(user)
+	if err != nil {
+		return nil, err
 	}
 
-	// Token generation and additional handling can be done here if needed
+	return &dto.LoginResponse{
+		AccessToken: token,
+	} , nil 
 
-	return user, nil
 }

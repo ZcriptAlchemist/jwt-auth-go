@@ -5,6 +5,7 @@ import (
 	"jwt-auth-go/api/advice"
 	"jwt-auth-go/models"
 	"net/http"
+	"os"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -23,7 +24,19 @@ func Connect() error {
 	// &gorm.Config{}: This is the configuration object for GORM. By passing an empty gorm.Config{}, you're using the default configuration. However, this object can be customized to change GORM's behavior, such as enabling logging, specifying naming strategies, and more.
 
 	// Use your database credentials
-	dsn := "host=localhost user=postgres password=password dbname=jwt-auth-go port=5432 sslmode=disable"
+	// dsn := "host=localhost user=postgres password=password dbname=jwt-auth-go port=5432 sslmode=disable"
+
+	// Get the environment variables
+	host := os.Getenv("DB_HOST")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+	sslmode := os.Getenv("SSL_MODE")
+
+	// Construct the DSN (Data Source Name) string
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
+		host, user, password, dbname, port, sslmode)
 
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})

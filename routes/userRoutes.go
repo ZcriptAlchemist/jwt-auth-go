@@ -6,12 +6,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func UserRoutes(router *gin.Engine) {
+func AuthRoutes(router *gin.Engine) {
+
 	// Create user.
 	router.POST("/users/create", controller.CreateUser)
 	
 	// Login route.
 	router.POST("users/authenticate", controller.Login)
+}
+
+func UserRoutes(router gin.IRoutes)  {
 
 	// Get all users.
 	router.GET("/get-users", controller.GetUsers)
